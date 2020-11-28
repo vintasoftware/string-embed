@@ -379,15 +379,15 @@ class NameCNN(nn.Module):
 
         self.conv = nn.Sequential(
             nn.Conv1d(self.mtc_input, channel, 3, 1, padding=1, bias=False),
-            nn.MaxPool1d(2),
+            nn.AvgPool1d(2),
             nn.Conv1d(channel, channel, 3, 1, padding=1, bias=False),
-            nn.MaxPool1d(2),
+            nn.AvgPool1d(2),
             nn.Conv1d(channel, channel, 3, 1, padding=1, bias=False),
-            nn.MaxPool1d(2),
+            nn.AvgPool1d(2),
             nn.Conv1d(channel, channel, 3, 1, padding=1, bias=False),
-            nn.MaxPool1d(2),
+            nn.AvgPool1d(2),
             nn.Conv1d(channel, channel, 3, 1, padding=1, bias=False),
-            nn.MaxPool1d(2),
+            nn.AvgPool1d(2),
         )
 
         # Size after pooling

@@ -477,32 +477,11 @@ class TripletNet(nn.Module):
 
 
 class TripletLoss(nn.Module):
-    def __init__(self, args):
-        super(TripletLoss, self).__init__()
-        self.l, self.r = 1, 1
-        step = args.epochs // 5
-        self.Ls = {
-            step * 0: (0, 10),
-            step * 1: (10, 10),
-            step * 2: (10, 1),
-            step * 3: (5, 0.1),
-            step * 4: (1, 0.01),
-        }
-        self.Ls = {
-            step * 0: (15, 0),
-            step * 1: (10, 0),
-            step * 2: (8, 0),
-            step * 3: (5, 0.0),
-            step * 4: (1, 0.0),
-        }
-
 
     def dist(self, ins, pos):
         return torch.norm(ins - pos, dim=1)
 
     def forward(self, x, lens, dists, epoch):
-        if epoch in self.Ls:
-            self.l, self.r = self.Ls[epoch]
         anchor, positive, negative = x
         pos_dist, neg_dist, pos_neg_dist = (d.type(torch.float32) for d in dists)
 
@@ -519,5 +498,4 @@ class TripletLoss(nn.Module):
 
         return torch.mean(rank_loss), \
                torch.mean(mse_loss), \
-               torch.mean(self.l * rank_loss +
-                          self.r *  torch.sqrt(mse_loss))
+               torch.mean(rank_loss + torch.sqrt(mse_loss))

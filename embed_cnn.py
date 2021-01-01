@@ -25,7 +25,7 @@ def _batch_embed(args, net, vecs: StringDataset, device, char_alphabet=None):
     if char_alphabet != None:
         vecs.to_bert_dataset(char_alphabet)
 
-    test_loader = torch.utils.data.DataLoader(vecs, batch_size=args.test_batch_size, shuffle=False, num_workers=4)
+    test_loader = torch.utils.data.DataLoader(vecs, batch_size=args.test_batch_size, shuffle=False, num_workers=os.cpu_count(), multiprocessing_context='fork')
     net.eval()
     embedding = []
     with tqdm.tqdm(total=len(test_loader), desc="# batch embedding") as p_bar:

@@ -1,4 +1,5 @@
 import time
+import os
 
 from tqdm import tqdm
 from networks import *
@@ -11,7 +12,8 @@ def train_epoch(args, train_set, device):
     torch.manual_seed(time.time())
 
     train_loader = torch.utils.data.DataLoader(
-        train_set, batch_size=args.batch_size, shuffle=True, num_workers=4
+        train_set, batch_size=args.batch_size, shuffle=True, num_workers=os.cpu_count(),
+        multiprocessing_context='fork'
     )
     if args.dataset == "word":
         EmbeddingNet = TwoLayerCNN
@@ -25,19 +27,22 @@ def train_epoch(args, train_set, device):
         EmbeddingNet = DBLPCNN
     elif args.dataset == "uniref":
         EmbeddingNet = UnirefCNN
-    elif args.dataset in ("donors", "donors2"):
+    elif args.dataset in ("donors", "donors3"):
         EmbeddingNet = TwoLayerCNN
     elif args.dataset == "donorsfull":
-        EmbeddingNet = NameCNN
+        EmbeddingNet = TwoLayerCNN
+    elif args.dataset == "donorsfull2":
+        EmbeddingNet = TwoLayerCNN
     else:
         EmbeddingNet = MultiLayerCNN
 
     if args.epochs == 0 and args.dataset != "word":
         EmbeddingNet = RandomCNN
     
+    print(f"{C=}", f"{M=}", f"embedding={args.embed_dim}", f"channel={args.channel}", f"mtc_input={args.mtc}")
     net = EmbeddingNet(C, M, embedding=args.embed_dim, channel=args.channel, mtc_input=args.mtc).to(device)
     model = TripletNet(net).to(device)
-    losser = TripletLoss(args)
+    losser = TripletLoss()
     model.train()
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -74,7 +79,7 @@ def train_epoch(args, train_set, device):
                 agg_m += m.item()
                 p_bar.update(1)
                 p_bar.set_description(
-                    "# Epoch: %3d Time: %.3f Loss: %.3f  r: %.3f m: %.3f"
+                    "# Epoch: %3d Time: %.3f Loss: %.3f Triplet Loss: %.3f RMSE Loss: %.3f"
                     % (
                         epoch,
                         time.time() - start_time,
